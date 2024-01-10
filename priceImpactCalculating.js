@@ -4,10 +4,19 @@ const axios = require('axios')
 const DataStore = require('./jsonFiles/DataStore.json')
 const pricesData = require('./jsonFiles/pricesData.json') // temporarily
 
-const MARKETADDRESS =  '0x09400D9DB990D5ed3f35D7be61DfAEB900Af03C9' // sol - usdc
+const md = require('./marketsData.js');
+
+const { getMarketData } = md
+
+//const MARKETADDRESS =  '0x09400D9DB990D5ed3f35D7be61DfAEB900Af03C9' // sol - usdc
 //const INDEXTOKEN = '0x2bcC6D6CdBbDC0a4071e48bb3B969b06B3330c07' // sol
-const LONGTOKEN = '0x2bcC6D6CdBbDC0a4071e48bb3B969b06B3330c07' // sol
-const SHORTTOKEN = '0xaf88d065e77c8cC2239327C5EDb3A432268e5831' // usdc
+//const LONGTOKEN = '0x2bcC6D6CdBbDC0a4071e48bb3B969b06B3330c07' // sol
+//const SHORTTOKEN = '0xaf88d065e77c8cC2239327C5EDb3A432268e5831' // usdc
+
+let MARKETADDRESS = ''
+let INDEXTOKEN = ''
+let LONGTOKEN = ''
+let SHORTTOKEN = ''
 
 const DATASTORE_CONTRACT = '0xFD70de6b91282D8017aA4E741e9Ae325CAb992d8'
 //const customSizeDeltaUsd = BigNumber.from('0x09d8c68736c96f26dcf862c00000')
@@ -397,8 +406,23 @@ async function getMarketInfoData() {
   }
 }
 
-async function getPriceImpact(isLong, amount) {
-  //const priceImpact = getPriceImpactForPosition(usdcSolMarketInfo, customSizeDeltaUsd, isLong, opts) // old
+const setMarketDataVariables = (marketData) => {
+  MARKETADDRESS = marketData.marketToken
+  INDEXTOKEN = marketData.indexToken
+  LONGTOKEN = marketData.longToken
+  SHORTTOKEN = marketData.shortToken
+}
+
+async function getPriceImpact(marketAddress, isLong, amount) {
+
+  const mDatas = await getMarketData()
+  //console.log('mDatas', mDatas)
+  setMarketDataVariables( mDatas.find((data) => {
+    console.log('data marketToken', data.marketToken)
+    console.log('query marketToken', marketAddress)
+    return data.marketToken.toLowerCase() === marketAddress.toLowerCase()
+  }))
+
   const marketInfo = await getMarketInfoData()
   console.log('marketInfo: ', marketInfo);
 
@@ -409,11 +433,13 @@ async function getPriceImpact(isLong, amount) {
   const sizeDeltaUsd = BigNumber.from(priceObj.minPrice).mul(formatAmount)
   console.log('sizeDeltaUsd: ', sizeDeltaUsd)
 
+  //const priceImpact = getPriceImpactForPosition(usdcSolMarketInfo, customSizeDeltaUsd, isLong, opts) // old
   const priceImpact = await getPriceImpactForPosition(marketInfo, sizeDeltaUsd, isLong, opts)
   console.log(isLong ? '[long]' : '[short]' + 'latest priceImpact: ', priceImpact, 'with sizeDeltaUsd: ', sizeDeltaUsd);
   const formatPriceImpact = ethers.utils.formatUnits(priceImpact, 30)
   console.log(isLong ? '[long]' : '[short]' + 'latest format priceImpact: ', formatPriceImpact, 'with sizeDeltaUsd: ', sizeDeltaUsd);
   return formatPriceImpact
+
 }
 
 module.exports = {

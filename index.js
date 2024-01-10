@@ -6,12 +6,13 @@ const { getPriceImpact } = pkg;
 
 app.get('/price_impact', async (req, res) => {
 
-  try {
+  //try {
 
     const amount = req.query.amount // string
     const isLong = req.query.isLong === 'true' // true or false string
+    const marketAddress = req.query.marketAddress // string
 
-    const priceImpact = await getPriceImpact(isLong, amount) // long
+    const priceImpact = await getPriceImpact(marketAddress, isLong, amount) // long
 
     console.log('priceImpact before render', priceImpact)
     console.log('priceImpact need to be rendered', priceImpact.toString())
@@ -22,9 +23,9 @@ app.get('/price_impact', async (req, res) => {
     }
     res.send(json)
 
-  } catch(error) {
-    res.send(error)
-  }
+  //} catch(error) {
+  //  res.send(error)
+  //}
 
 })
 
