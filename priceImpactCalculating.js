@@ -1,5 +1,6 @@
 const { ethers, BigNumber } = require('ethers')
 const axios = require('axios')
+const tokensData = require('./jsonFiles/tokensInfo.json')
 
 const DataStore = require('./jsonFiles/DataStore.json')
 const pricesData = require('./jsonFiles/pricesData.json') // temporarily
@@ -426,9 +427,11 @@ async function getPriceImpact(marketAddress, isLong, amount) {
   const marketInfo = await getMarketInfoData()
   console.log('marketInfo: ', marketInfo);
 
+  const tokenDecimals = tokensData.find((tokenInfo) => tokenInfo.address.toLowerCase() === INDEXTOKEN.toLowerCase())['decimals']
+
   const priceObj = await getTokenPrice(LONGTOKEN)
   console.log('priceObj: ', priceObj)
-  const formatAmount = ethers.utils.parseUnits(amount, 9) // TODO decimals
+  const formatAmount = ethers.utils.parseUnits(amount, tokenDecimals)
   console.log('formatAmount', formatAmount);
   const sizeDeltaUsd = BigNumber.from(priceObj.minPrice).mul(formatAmount)
   console.log('sizeDeltaUsd: ', sizeDeltaUsd)
